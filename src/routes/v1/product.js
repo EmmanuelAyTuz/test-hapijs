@@ -4,7 +4,7 @@ const product_plugin = {
   //pkg: require("../../../package.json"),
   name: "product_plugin",
   version: "1.0.0",
-  register: async function (server, options) {
+  register: async (server, options) => {
     server.route({
       method: "GET",
       path: "/product/test",

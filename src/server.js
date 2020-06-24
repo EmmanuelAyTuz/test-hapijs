@@ -1,6 +1,8 @@
 const Hapi = require("@hapi/hapi");
 const { host, port } = require("../config/env");
 
+require("./database"); //Mongodb
+
 const init = async () => {
   const server = new Hapi.Server({
     port: port,
@@ -9,12 +11,25 @@ const init = async () => {
 
   //Routes no ver
   server.route({
-    method: "GET",
-    path: "/test",
+    method: ["GET", "POST"],
+    path: "/test/{id?}", //{param} is required and {param?} is optional
     handler: (req, h) => {
-      return { welcome: "This text is a test!" };
+      const user = req.params.id ? req.params.id : "No param";
+      const body = req.body ? req.body : "No body";
+      return {
+        welcome: "This text is a test!",
+        params: req.params,
+        body: body,
+        single: user,
+      };
     },
   });
+
+  /*server.route({
+    method: "*",
+    path: "/{any*}",
+    handler: (request, h) => {},
+  });*/
 
   //Routes ver
   const user = require("./routes/v1/user"); //Plugin
