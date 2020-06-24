@@ -5,4 +5,5 @@ dotenv.config();
 module.exports = {
   url_mongo: process.env.MONGO_DB,
   port: process.env.PORT,
+  host: process.env.HOST,
 };
