@@ -24,7 +24,8 @@
     "@hapi/hapi": "^19.1.1",
     "@hapi/joi": "^17.1.1",
     "dotenv": "^8.2.0",
-    "mongoose": "^5.9.20"
+    "mongoose": "^5.9.20",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.4",
