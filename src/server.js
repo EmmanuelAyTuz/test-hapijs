@@ -1,13 +1,17 @@
 const Hapi = require("@hapi/hapi");
 const { host, port } = require("../config/env");
+const { strategy } = require("./helpers/auth");
 
 require("./database"); //Mongodb
 
 const init = async () => {
+  //Create server
   const server = new Hapi.Server({
     port: port,
     host: host,
   });
+
+  await server.start();
 
   //Routes no ver
   server.route({
@@ -25,21 +29,16 @@ const init = async () => {
     },
   });
 
-  /*server.route({
-    method: "*",
-    path: "/{any*}",
-    handler: (request, h) => {},
-  });*/
-
   //Routes ver
   const user = require("./routes/v1/user"); //Plugin
   const product = require("./routes/v1/product"); //Plugin
+  const admin = require("./routes/admin/v1/user"); //Plugin
 
   await server.register(
     [
       {
         plugin: user,
-        options: { who: "Dev" },
+        options: { who: "User" },
       },
       {
         plugin: product,
@@ -49,7 +48,23 @@ const init = async () => {
     { routes: { prefix: "/v1" } }
   );
 
-  await server.start();
+  await server.register(
+    [
+      {
+        plugin: admin,
+        options: { who: "Admin" },
+      },
+    ],
+    { routes: { prefix: "/v1" } }
+  );
+
+  /*server.route({
+    method: "*",
+    path: "/{any*}",
+    handler: (request, h) => {},
+  });*/
+
+  strategy(server);
 
   console.log("Server is running on ", server.info);
 };

@@ -1,19 +1,23 @@
 "use strict";
 const Joi = require("@hapi/joi");
-const { encryptPassword } = require("../../helpers/bpassword");
+const { infoSession } = require("../../../helpers/isAdmin");
+const { encryptPassword } = require("../../../helpers/bpassword");
 
 //Models
-const User = require("../../models/User");
+const User = require("../../../models/User");
 
 const user_plugin = {
   //pkg: require("../../../package.json"),
-  name: "user_plugin",
+  name: "admin_plugin",
   version: "1.0.0",
   register: async (server, options) => {
     server.route({
       method: "GET",
-      path: "/user/test",
+      path: "/admin/test",
       handler: (req, h) => {
+        if (!infoSession().isAdmin) {
+          return h.response({ info: "You are not a Admin" });
+        }
         return { info: `Hello ${options.who}!!!` };
       },
     });
@@ -21,12 +25,13 @@ const user_plugin = {
     //Create
     server.route({
       method: "POST",
-      path: "/user/create",
+      path: "/admin/user/create",
       options: {
         validate: {
           payload: Joi.object({
             username: Joi.string().min(4).max(12).required(),
             password: Joi.string().min(6).max(12).required(),
+            isAdmin: Joi.boolean().optional().default(false),
           }),
           failAction: (req, h, err) => {
             return err;
@@ -36,9 +41,13 @@ const user_plugin = {
       },
       handler: async (req, h) => {
         try {
-          const { username, password } = req.payload;
+          if (!infoSession().isAdmin) {
+            return h.response({ info: "You are not a Admin" });
+          }
+          const { username, password, isAdmin } = req.payload;
           const user = new User({ username });
           user.password = await encryptPassword(password);
+          user.isAdmin = isAdmin;
           const userCreated = await user.save();
           return h.response(userCreated).code(201);
         } catch (error) {
@@ -50,11 +59,14 @@ const user_plugin = {
     //Read
     server.route({
       method: "GET",
-      path: "/user/all",
+      path: "/admin/user/all",
       handler: async (req, h) => {
         try {
-          const user = await User.find({ isAdmin: false });
-          return h.response(user).code(200); //No show all fields
+          if (!infoSession().isAdmin) {
+            return h.response({ info: "You are not a Admin" });
+          }
+          const user = await User.find();
+          return h.response(user).code(200); //Show all fields
         } catch (error) {
           console.log(error.message);
         }
@@ -62,7 +74,7 @@ const user_plugin = {
     });
     server.route({
       method: "GET",
-      path: "/user/{id}",
+      path: "/admin/user/{id}",
       options: {
         validate: {
           params: Joi.object({ id: Joi.string().alphanum() }),
@@ -75,6 +87,9 @@ const user_plugin = {
       handler: async (req, h) => {
         try {
           if (req.params.id) {
+            if (!infoSession().isAdmin) {
+              return h.response({ info: "You are not a Admin" });
+            }
             const users = await User.findById(req.params.id);
             return h.response(users).code(200);
           }
@@ -87,12 +102,13 @@ const user_plugin = {
     //Update
     server.route({
       method: "PUT",
-      path: "/user/{id}",
+      path: "/admin/user/{id}",
       options: {
         validate: {
           payload: Joi.object({
             username: Joi.string().min(4).max(12).required(),
             password: Joi.string().min(6).max(12).required(),
+            isAdmin: Joi.boolean().optional().default(false),
           }),
           params: Joi.object({ id: Joi.string().alphanum() }),
           failAction: async (req, h, err) => {
@@ -103,15 +119,18 @@ const user_plugin = {
       },
       handler: async (req, h) => {
         try {
-          const { username, password } = req.payload;
-          const hash = await encryptPassword(password);
-
+          if (!infoSession().isAdmin) {
+            return h.response({ info: "You are not a Admin" });
+          }
+          const { username, password, isAdmin } = req.payload;
           const user = await User.findByIdAndUpdate(
             req.params.id,
-            { username: username, password: hash },
             {
-              new: true,
-            }
+              username: username,
+              password: await encryptPassword(password),
+              isAdmin: isAdmin,
+            },
+            { new: true }
           );
           return h.response(user).code(202);
         } catch (error) {
@@ -123,7 +142,7 @@ const user_plugin = {
     //Delete
     server.route({
       method: "DELETE",
-      path: "/user/{id}",
+      path: "/admin/user/{id}",
       options: {
         validate: {
           params: Joi.object({ id: Joi.string().alphanum() }),
@@ -135,6 +154,9 @@ const user_plugin = {
       },
       handler: async (req, h) => {
         try {
+          if (!infoSession().isAdmin) {
+            return h.response({ info: "You are not a Admin" });
+          }
           const user = await User.findByIdAndDelete(req.params.id);
           return h.response(user).code(204);
         } catch (error) {
