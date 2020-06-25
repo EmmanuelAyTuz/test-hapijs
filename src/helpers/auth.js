@@ -1,7 +1,7 @@
 const Cookie = require("@hapi/cookie");
 const User = require("../models/User");
 const { setSession } = require("./isAdmin");
-const { matchPassword } = require("./bpassword");
+const { matchPassword, encryptPassword } = require("./bpassword");
 const auth = {};
 let id = "";
 
@@ -104,7 +104,7 @@ auth.strategy = async (server) => {
       handler: async (req, h) => {
         try {
           const user = new User({ username: "Admin" });
-          user.password = await user.encryptPassword("Admin");
+          user.password = await encryptPassword("Admin");
           user.isAdmin = true;
           const create = await user.save((err) => {});
           if (!create) {
