@@ -99,7 +99,7 @@ auth.strategy = async (server) => {
       },
     },
     {
-      method: "POST",
+      method: "GET",
       path: "/init", //Remove after
       handler: async (req, h) => {
         try {
