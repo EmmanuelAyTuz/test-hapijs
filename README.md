@@ -19,11 +19,11 @@ Rename file _.env.example_ to _.env_
 
 ## Test endpoints
 
-First send a "POST / init" (Generate a default User)
+First send a [GET / init][get_init] (Generate a default User)
 Login with "POST / login" body {username: "Admin", password: "Admin"}
 
 - Test methods
-  - [GET][get] /
+  - [GET][get_test] /
   - POST /
   - PUT /
   - DELETE /
@@ -52,4 +52,5 @@ If you are logged in as Admin you will access all the endpoints instead if you l
 | PUT | /{version}/admin/user/ | { username, password, isAdmin } | { id } | | _ | _ |
 | DELETE | /{version}/admin/user/ | | { id } | | _ | _ |
 
-[get]: http://localhost:8000/
+[get_test]: http://localhost:8000/
+[get_init]: http://localhost:8000/init
